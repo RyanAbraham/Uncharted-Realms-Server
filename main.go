@@ -34,7 +34,7 @@ func gameHandler(w http.ResponseWriter, r *http.Request) {
 			Pow:  2,
 			Hp:   1,
 			Img:  "testurl.com",
-			Eff:  "Charge",
+			Effs:  [],
 		}
 		sampleDeck := models.Deck{
 			Cards: make([]models.Card, 0),
