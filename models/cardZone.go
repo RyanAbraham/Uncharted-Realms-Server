@@ -25,7 +25,7 @@ func (cz *CardZone) RemoveCard(c Card) {
 }
 
 func (cz *CardZone) getIndexOfCard(c Card) int {
-	for i, c2 := range cz.cards {
+	for i, c2 := range cz.Cards {
 		if reflect.DeepEqual(c, c2) {
 			return i
 		}
