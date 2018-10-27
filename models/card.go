@@ -46,6 +46,6 @@ func (c *Card) ClockDown() bool {
 
 // String stringifies a card when printed with printf
 func (c *Card) String() string {
-	return fmt.Sprintf("Card{ID: %d, Name: %s, Clk: %d, Pow: %d, Hp: %d, Effs: %v}",
+	return fmt.Sprintf("\nCard{ID: %d, Name: %s, Clk: %d, Pow: %d, Hp: %d, Effs: %v}",
 		c.ID, c.Name, c.Clk, c.Pow, c.Hp, c.Effs)
 }
