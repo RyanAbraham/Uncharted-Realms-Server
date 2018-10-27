@@ -1,6 +1,11 @@
 package simulators
 
 import (
+	"log"
+	"os"
+	"path/filepath"
+	"time"
+
 	"github.com/ryanabraham/urserver/models"
 )
 
@@ -15,20 +20,37 @@ type gameState struct {
 
 var state gameState
 
-// PlayGame simulates a game with 2 decks.
-// Returns 1 for player 1 win, 2 for player 2, and 0 for a draw.
-func PlayGame(d1, d2 models.Deck) int {
+// Play simulates a game with 2 decks.
+// Returns 0 for player 1 win, 1 for player 2, and -1 for a draw.
+func Play(d1, d2 models.Deck) int {
+	newPath := filepath.Join("..", "logs")
+	os.MkdirAll(newPath, os.ModePerm)
+	logName := time.Now().Format("2006-01-02_15-04-05") + ".log"
+	path := filepath.Join(newPath, logName)
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	log.SetOutput(f)
+	defer f.Close()
 	startGame(d1, d2)
 	for {
+		log.Printf("***PLAYER %d TURN START***", state.turn+1)
 		playTurn()
+		log.Printf("state.hands %+v", state.hands)
+		log.Printf("state.fields %+v", state.fields)
+		log.Println("state.playerHPs", state.playerHPs)
 		// Check if a player won through damage
+		if state.playerHPs[0] <= 0 && state.playerHPs[1] <= 0 {
+			return -1
+		}
 		for idx, hp := range state.playerHPs {
 			if hp <= 0 {
-				return idx + 1
+				// The other player won
+				return (idx + 1) % 2
 			}
 		}
 	}
-	return 0
 }
 
 func playTurn() {
@@ -36,7 +58,9 @@ func playTurn() {
 	ep := (p + 1) % 2 // Enemy turn
 
 	// Draw a card
-	state.hands[p].AddCard(state.decks[p].DrawCard())
+	if c, e := state.decks[p].DrawCard(); e == nil {
+		state.hands[p].AddCard(&c)
+	}
 
 	// Reduce clocks
 	for _, c := range state.hands[p].Cards {
@@ -48,14 +72,18 @@ func playTurn() {
 
 	// Declare attacks
 	for idx, c := range state.fields[p].Cards {
-		if len(state.fields[ep] >= idx {
+		if len(state.fields[ep].Cards) > idx {
 			// There is an enemy card blocking this attack
-			state.fields[ep].Cards[idx].Damage(c.Pow)
+			ec := state.fields[ep].Cards[idx]
+			killed := ec.Damage(c.Pow)
+			if killed {
+				state.fields[ep].RemoveCard(ec)
+			}
 		} else {
 			state.playerHPs[ep] -= c.Pow
 		}
 	}
-	
+
 	// End turn
 	state.turn = ep
 }
@@ -64,6 +92,17 @@ func startGame(d1, d2 models.Deck) {
 	state.decks = [...]models.Deck{d1, d2}
 	for _, deck := range state.decks {
 		deck.Shuffle()
+	}
+	state.fields = [2]models.CardZone{
+		models.CardZone{},
+		models.CardZone{},
+	}
+	state.hands = [2]models.CardZone{
+		models.CardZone{},
+		models.CardZone{},
+	}
+	for idx := range state.playerHPs {
+		state.playerHPs[idx] = 30
 	}
 	state.turn = 0
 }

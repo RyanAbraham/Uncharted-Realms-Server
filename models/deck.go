@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"math/rand"
 )
 
@@ -17,20 +18,22 @@ func (d *Deck) AddCards(cards ...Card) {
 }
 
 // DrawCard draws a single card from the deck and returns it
-func (d *Deck) DrawCard() Card {
+func (d *Deck) DrawCard() (Card, error) {
 	var c Card
 	if len(d.cards) > 0 {
 		c, d.cards = d.cards[0], d.cards[1:]
-		return c
+		return c, nil
 	}
-	return nil // No card to draw
+	return c, errors.New("Can't draw from empty deck")
 }
 
 // DrawCards draws multiple cards from the deck and returns them all
 func (d *Deck) DrawCards(num int) []Card {
 	var cards []Card
 	for x := 0; x < num; x++ {
-		cards = append(cards, d.DrawCard())
+		if c, e := d.DrawCard(); e != nil {
+			cards = append(cards, c)
+		}
 	}
 	return cards
 }

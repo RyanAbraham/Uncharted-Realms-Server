@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 // Card represents a single unique game card
 type Card struct {
 	ID   int      `json:"id"`
@@ -11,9 +13,10 @@ type Card struct {
 	Effs []string `json:"effs"`
 }
 
-// Damage reduces the hp of a card
-func (c *Card) Damage(d int) {
+// Damage reduces the hp of a card and returns true if HP 0
+func (c *Card) Damage(d int) bool {
 	c.Hp -= d
+	return c.Hp <= 0
 }
 
 // ChangePow modifies the power of a card
@@ -39,4 +42,10 @@ func (c *Card) AddEffs(effs ...string) {
 // whether the card's clock has hit 0 or not
 func (c *Card) ClockDown() bool {
 	return c.ChangeClk(-1)
+}
+
+// String stringifies a card when printed with printf
+func (c *Card) String() string {
+	return fmt.Sprintf("Card{ID: %d, Name: %s, Clk: %d, Pow: %d, Hp: %d, Effs: %v}",
+		c.ID, c.Name, c.Clk, c.Pow, c.Hp, c.Effs)
 }
