@@ -23,6 +23,7 @@ func TestGuaranteedWins(t *testing.T) {
 		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 1)
 	}
 }
+
 func TestMoreCardsWins(t *testing.T) {
 	oneMinusDeck := helpers.DeckOf(one, 9)
 	result := Play(oneDeck, oneMinusDeck)
@@ -34,12 +35,20 @@ func TestMoreCardsWins(t *testing.T) {
 		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 1)
 	}
 }
+
 func TestStrongerCardsWins(t *testing.T) {
 	result := Play(twoDeck, oneDeck)
 	if result != 0 {
 		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 0)
 	}
 	result = Play(oneDeck, twoDeck)
+	if result != 1 {
+		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 1)
+	}
+}
+
+func TestEqualDeckWinsOnDraw(t *testing.T) {
+	result := Play(oneDeck, oneDeck)
 	if result != 1 {
 		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 1)
 	}
