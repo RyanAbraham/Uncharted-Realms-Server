@@ -11,29 +11,21 @@ import (
 
 // TODO: Possibly abstract this to its own model
 type gameState struct {
+	decks     [2]models.Deck
 	hands     [2]models.CardZone
 	fields    [2]models.CardZone
-	decks     [2]models.Deck
 	playerHPs [2]int
 	turn      int
 }
 
 var state gameState
+var f *os.File
 
 // Play simulates a game with 2 decks.
 // Returns 0 for player 1 win, 1 for player 2, and -1 for a draw.
 func Play(d1, d2 models.Deck) int {
-	newPath := filepath.Join("..", "logs")
-	os.MkdirAll(newPath, os.ModePerm)
-	logName := time.Now().Format("2006-01-02_15-04-05") + ".log"
-	path := filepath.Join(newPath, logName)
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	log.SetOutput(f)
-	defer f.Close()
 	startGame(d1, d2)
+	defer f.Close()
 	for {
 		log.Printf("***PLAYER %d TURN START***", state.turn+1)
 		playTurn()
@@ -89,20 +81,37 @@ func playTurn() {
 }
 
 func startGame(d1, d2 models.Deck) {
+	// Start logging
+	newPath := filepath.Join("..", "logs")
+	os.MkdirAll(newPath, os.ModePerm)
+	logName := time.Now().Format("2006-01-02_15-04-05") + ".log"
+	path := filepath.Join(newPath, logName)
+	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	log.SetOutput(f)
+
+	// Populate and shuffle decks
 	state.decks = [...]models.Deck{d1, d2}
 	for _, deck := range state.decks {
 		deck.Shuffle()
+	}
+	// Initialize hands and fields
+	state.hands = [2]models.CardZone{
+		models.CardZone{},
+		models.CardZone{},
 	}
 	state.fields = [2]models.CardZone{
 		models.CardZone{},
 		models.CardZone{},
 	}
-	state.hands = [2]models.CardZone{
-		models.CardZone{},
-		models.CardZone{},
-	}
+
+	// Starting player HPs
 	for idx := range state.playerHPs {
 		state.playerHPs[idx] = 30
 	}
+	// Set starting player
+	// TODO: Randomize this
 	state.turn = 0
 }
