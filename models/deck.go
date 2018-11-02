@@ -39,7 +39,9 @@ func (d *Deck) DrawCards(num int) []Card {
 }
 
 // Shuffle randomizes the order of cards in the deck
-func (d *Deck) Shuffle() {
+func (d *Deck) Shuffle(seed int64) {
+	// TODO: Test if this can be set in game.go
+	rand.Seed(seed)
 	rand.Shuffle(len(d.cards), func(i, j int) {
 		d.cards[i], d.cards[j] = d.cards[j], d.cards[i]
 	})

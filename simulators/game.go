@@ -19,6 +19,8 @@ type gameState struct {
 }
 
 var state gameState
+var seed int64
+var aniLog models.AnimationLog
 var f *os.File
 
 // Play simulates a game with 2 decks.
@@ -26,19 +28,21 @@ var f *os.File
 func Play(d1, d2 models.Deck) int {
 	startGame(d1, d2)
 	defer f.Close()
+	log.Println("*** START GAME ***")
 	for {
-		log.Printf("***PLAYER %d TURN START***", state.turn+1)
 		playTurn()
-		log.Printf("state.hands %+v", state.hands)
-		log.Printf("state.fields %+v", state.fields)
-		log.Println("state.playerHPs", state.playerHPs)
 		// Check if a player won through damage
 		if state.playerHPs[0] <= 0 && state.playerHPs[1] <= 0 {
+			// Tie game
+			log.Printf("### Animation Log: %+v\n", aniLog)
+			log.Printf("*** GAME ENDED ***\nWINNER: DRAW\n\n")
 			return -1
 		}
 		for idx, hp := range state.playerHPs {
 			if hp <= 0 {
 				// The other player won
+				log.Printf("### Animation Log: %+v\n", aniLog)
+				log.Printf("*** GAME ENDED ***\nWINNER: PLAYER %d\n\n", (idx+1)%2+1)
 				return (idx + 1) % 2
 			}
 		}
@@ -48,15 +52,20 @@ func Play(d1, d2 models.Deck) int {
 func playTurn() {
 	p := state.turn   // Player turn
 	ep := (p + 1) % 2 // Enemy turn
+	aniLog.StartTurn(p)
 
 	// Draw a card
 	if c, e := state.decks[p].DrawCard(); e == nil {
+		aniLog.DrawCard(p)
 		state.hands[p].AddCard(&c)
 	}
 
 	// Reduce clocks
-	for _, c := range state.hands[p].Cards {
+	for idx, c := range state.hands[p].Cards {
+		aniLog.CardClocksDown(p, idx)
 		if c.ClockDown() {
+			// TODO: May need to adjust idx
+			aniLog.PlayCard(p, idx)
 			state.fields[p].AddCard(c)
 			state.hands[p].RemoveCard(c)
 		}
@@ -64,14 +73,18 @@ func playTurn() {
 
 	// Declare attacks
 	for idx, c := range state.fields[p].Cards {
+		aniLog.CardAttacks(p, idx)
 		if len(state.fields[ep].Cards) > idx {
 			// There is an enemy card blocking this attack
+			aniLog.CardAttacked(ep, idx, c.Pow)
 			ec := state.fields[ep].Cards[idx]
 			killed := ec.Damage(c.Pow)
 			if killed {
+				aniLog.CardDies(p, idx)
 				state.fields[ep].RemoveCard(ec)
 			}
 		} else {
+			aniLog.PlayerAttacked(ep, c.Pow)
 			state.playerHPs[ep] -= c.Pow
 		}
 	}
@@ -92,10 +105,15 @@ func startGame(d1, d2 models.Deck) {
 	}
 	log.SetOutput(f)
 
+	// Generate random seed
+	seed = time.Now().UTC().UnixNano()
+	aniLog.RandomSeed = seed
+
 	// Populate and shuffle decks
 	state.decks = [...]models.Deck{d1, d2}
-	for _, deck := range state.decks {
-		deck.Shuffle()
+	for i, deck := range state.decks {
+		aniLog.ShuffleDeck(i)
+		deck.Shuffle(seed)
 	}
 	// Initialize hands and fields
 	state.hands = [2]models.CardZone{

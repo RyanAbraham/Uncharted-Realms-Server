@@ -1,26 +1,35 @@
 package models
 
+import (
+	"fmt"
+)
+
 // AnimationLog is a list of animations that happened in the game
 type AnimationLog struct {
 	// TODO: Make Animations a linked list for faster push/pop
-	Animations []animation `json:"animations"`
-	RandomSeed int         `json:"seed"`
+	Animations animationList `json:"animations"`
+	RandomSeed int64         `json:"seed"`
 }
+
+type animationList []animation
 
 // animationType is used for an enum to distinguish animations
 type animationType int
 
 // animationType enum
 const (
-	drawCard          animationType = 0
-	playCard          animationType = 1
-	cardClocksDown    animationType = 2
-	cardAttacks       animationType = 3
-	cardTakesDamage   animationType = 4
-	cardStatIncrease  animationType = 5
-	cardStatDecrease  animationType = 6
-	playerTakesDamage animationType = 7
-	playerGainsLife   animationType = 8
+	startTurn animationType = iota
+	drawCard
+	playCard
+	cardClocksDown
+	cardAttacks
+	cardAttacked
+	cardDies
+	cardStatIncrease
+	cardStatDecrease
+	shuffleDeck
+	playerAttacked
+	playerGainsLife
 )
 
 // cardLocation is used for an enum to represent different card locations
@@ -28,9 +37,9 @@ type cardLocation int
 
 // cardLocation enum
 const (
-	deckLoc  cardLocation = 0
-	handLoc  cardLocation = 1
-	fieldLoc cardLocation = 2
+	deckLoc cardLocation = iota
+	handLoc
+	fieldLoc
 )
 
 type animation struct {
@@ -43,6 +52,14 @@ type animation struct {
 
 func (a *AnimationLog) addAnimation(ani animation) {
 	a.Animations = append(a.Animations, ani)
+}
+
+// StartTurn adds an animation of that type to the animation log
+func (a *AnimationLog) StartTurn(p int) {
+	a.addAnimation(animation{
+		Type:   startTurn,
+		Player: p,
+	})
 }
 
 // DrawCard adds an animation of that type to the animation log
@@ -80,13 +97,22 @@ func (a *AnimationLog) CardAttacks(p, idx int) {
 	})
 }
 
-// CardTakesDamage adds an animation of that type to the animation log
-func (a *AnimationLog) CardTakesDamage(p, idx, val int) {
+// CardAttacked adds an animation of that type to the animation log
+func (a *AnimationLog) CardAttacked(p, idx, val int) {
 	a.addAnimation(animation{
-		Type:   cardTakesDamage,
+		Type:   cardAttacked,
 		Player: p,
 		CIdx:   idx,
 		Val:    val,
+	})
+}
+
+// CardDies adds an animation of that type to the animation log
+func (a *AnimationLog) CardDies(p, idx int) {
+	a.addAnimation(animation{
+		Type:   cardAttacked,
+		Player: p,
+		CIdx:   idx,
 	})
 }
 
@@ -112,10 +138,18 @@ func (a *AnimationLog) CardStatDecrease(p, idx, val int, loc cardLocation) {
 	})
 }
 
-// PlayerTakesDamage adds an animation of that type to the animation log
-func (a *AnimationLog) PlayerTakesDamage(p, val int) {
+// ShuffleDeck adds an animation of that type to the animation log
+func (a *AnimationLog) ShuffleDeck(p int) {
 	a.addAnimation(animation{
-		Type:   playerTakesDamage,
+		Type:   shuffleDeck,
+		Player: p,
+	})
+}
+
+// PlayerAttacked adds an animation of that type to the animation log
+func (a *AnimationLog) PlayerAttacked(p, val int) {
+	a.addAnimation(animation{
+		Type:   playerAttacked,
 		Player: p,
 		Val:    val,
 	})
@@ -128,4 +162,33 @@ func (a *AnimationLog) PlayerGainsLife(p, val int) {
 		Player: p,
 		Val:    val,
 	})
+}
+
+func (aniT animationType) String() string {
+	animationTypes := [...]string{
+		"startTurn",
+		"drawCard",
+		"playCard",
+		"cardClocksDown",
+		"cardAttacks",
+		"cardAttacked",
+		"cardDies",
+		"cardStatIncrease",
+		"cardStatDecrease",
+		"shuffleDeck",
+		"playerAttacked",
+		"playerGainsLife",
+	}
+	if int(aniT) < len(animationTypes) {
+		return animationTypes[aniT]
+	}
+	return "unknown"
+}
+
+func (anis animationList) String() string {
+	s := "[\n"
+	for _, a := range anis {
+		s += fmt.Sprintf("%+v\n", a)
+	}
+	return s + "]"
 }
