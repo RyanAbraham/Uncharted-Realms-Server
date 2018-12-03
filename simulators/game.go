@@ -1,7 +1,6 @@
 package simulators
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -118,9 +117,7 @@ func startGame(d1, d2 models.Deck) {
 
 	// Set up game variables
 	seed = time.Now().UTC().UnixNano()
-	fmt.Println("### seed", seed)
 	result.Seed = seed
-	fmt.Println("### result.Seed", result.Seed)
 	result.AnimationLog = &aniLog
 
 	// Populate and shuffle decks

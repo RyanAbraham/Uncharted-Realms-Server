@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/ryanabraham/urserver/helpers"
@@ -15,6 +14,5 @@ func (a *App) DebugHandler(w http.ResponseWriter, r *http.Request) {
 	var oneDeck = helpers.DeckOf(one, 10)
 	var twoDeck = helpers.DeckOf(two, 10)
 	result := simulators.Play(twoDeck, oneDeck)
-	fmt.Println("### result", result)
 	RespondWithJSON(w, 200, result)
 }
