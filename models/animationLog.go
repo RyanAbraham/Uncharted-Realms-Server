@@ -8,7 +8,6 @@ import (
 type AnimationLog struct {
 	// TODO: Make Animations a linked list for faster push/pop
 	Animations animationList `json:"animations"`
-	RandomSeed int64         `json:"seed"`
 }
 
 type animationList []animation

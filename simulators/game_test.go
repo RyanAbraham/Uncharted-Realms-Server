@@ -15,11 +15,11 @@ var emptyDeck = models.Deck{}
 
 func TestGuaranteedWins(t *testing.T) {
 	result := Play(oneDeck, emptyDeck)
-	if result != 0 {
+	if result.Winner != 0 {
 		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 0)
 	}
 	result = Play(emptyDeck, oneDeck)
-	if result != 1 {
+	if result.Winner != 1 {
 		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 1)
 	}
 }
@@ -27,29 +27,29 @@ func TestGuaranteedWins(t *testing.T) {
 func TestMoreCardsWins(t *testing.T) {
 	oneMinusDeck := helpers.DeckOf(one, 9)
 	result := Play(oneDeck, oneMinusDeck)
-	if result != 0 {
+	if result.Winner != 0 {
 		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 0)
 	}
 	result = Play(oneMinusDeck, oneDeck)
-	if result != 1 {
+	if result.Winner != 1 {
 		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 1)
 	}
 }
 
 func TestStrongerCardsWins(t *testing.T) {
 	result := Play(twoDeck, oneDeck)
-	if result != 0 {
+	if result.Winner != 0 {
 		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 0)
 	}
 	result = Play(oneDeck, twoDeck)
-	if result != 1 {
+	if result.Winner != 1 {
 		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 1)
 	}
 }
 
 func TestEqualDeckWinsOnDraw(t *testing.T) {
 	result := Play(oneDeck, oneDeck)
-	if result != 1 {
+	if result.Winner != 1 {
 		t.Errorf("Game result incorrect, got: %d, expected %d.", result, 1)
 	}
 }

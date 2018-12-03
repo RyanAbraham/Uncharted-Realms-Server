@@ -1,6 +1,7 @@
 package simulators
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -18,14 +19,22 @@ type gameState struct {
 	turn      int
 }
 
+// GameResult contains all information from a game that was simulated
+type GameResult struct {
+	Winner       int                  `json:"winner"`
+	AnimationLog *models.AnimationLog `json:"animationLog"`
+	Seed         int64                `json:"seed"`
+}
+
 var state gameState
 var seed int64
 var aniLog models.AnimationLog
+var result GameResult
 var f *os.File
 
 // Play simulates a game with 2 decks.
 // Returns 0 for player 1 win, 1 for player 2, and -1 for a draw.
-func Play(d1, d2 models.Deck) int {
+func Play(d1, d2 models.Deck) GameResult {
 	startGame(d1, d2)
 	defer f.Close()
 	log.Println("*** START GAME ***")
@@ -36,14 +45,16 @@ func Play(d1, d2 models.Deck) int {
 			// Tie game
 			log.Printf("### Animation Log: %+v\n", aniLog)
 			log.Printf("*** GAME ENDED ***\nWINNER: DRAW\n\n")
-			return -1
+			result.Winner = -1
+			return result
 		}
 		for idx, hp := range state.playerHPs {
 			if hp <= 0 {
 				// The other player won
 				log.Printf("### Animation Log: %+v\n", aniLog)
 				log.Printf("*** GAME ENDED ***\nWINNER: PLAYER %d\n\n", (idx+1)%2+1)
-				return (idx + 1) % 2
+				result.Winner = (idx + 1) % 2
+				return result
 			}
 		}
 	}
@@ -105,9 +116,12 @@ func startGame(d1, d2 models.Deck) {
 	}
 	log.SetOutput(f)
 
-	// Generate random seed
+	// Set up game variables
 	seed = time.Now().UTC().UnixNano()
-	aniLog.RandomSeed = seed
+	fmt.Println("### seed", seed)
+	result.Seed = seed
+	fmt.Println("### result.Seed", result.Seed)
+	result.AnimationLog = &aniLog
 
 	// Populate and shuffle decks
 	state.decks = [...]models.Deck{d1, d2}
