@@ -3,10 +3,11 @@ package handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	httplogger "github.com/jesseokeya/go-httplogger"
 )
 
 // App holds references to the router and database
@@ -38,7 +39,8 @@ func (a *App) Initialize() {
 
 // Run starts the server at the given address
 func (a *App) Run(addr string) {
-	log.Fatal(http.ListenAndServe(addr, a.Router))
+	fmt.Println("Listening at", addr)
+	http.ListenAndServe(addr, httplogger.Golog(a.Router))
 }
 
 // RespondWithError sends an error response as JSON
