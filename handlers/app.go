@@ -52,6 +52,12 @@ func RespondWithError(w http.ResponseWriter, code int, msg string) {
 func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	response, _ := json.Marshal(payload)
 	w.Header().Set("Content-Type", "application/json")
+	enableCors(&w)
 	w.WriteHeader(code)
 	w.Write(response)
+}
+
+// enableCors is a temporary testing function that allows easy localhost testing
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
