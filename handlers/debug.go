@@ -12,7 +12,7 @@ type debugResponse struct {
 	Winner       int                  `json:"winner"`
 	AnimationLog *models.AnimationLog `json:"animationLog"`
 	Seed         int64                `json:"seed"`
-	Decks        []models.Deck        `json:"decks"`
+	Decks        [][]models.Card      `json:"decks"`
 }
 
 // DebugHandler serves a sample JSON response for a game
@@ -26,7 +26,7 @@ func (a *App) DebugHandler(w http.ResponseWriter, r *http.Request) {
 		Winner:       result.Winner,
 		AnimationLog: result.AnimationLog,
 		Seed:         result.Seed,
-		Decks:        []models.Deck{oneDeck, twoDeck},
+		Decks:        [][]models.Card{oneDeck.Cards, twoDeck.Cards},
 	}
 	RespondWithJSON(w, 200, response)
 }
