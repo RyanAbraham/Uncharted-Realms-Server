@@ -42,7 +42,6 @@ func Play(d1, d2 models.Deck) GameResult {
 		// Check if a player won through damage
 		if state.playerHPs[0] <= 0 && state.playerHPs[1] <= 0 {
 			// Tie game
-			log.Printf("### Animation Log: %+v\n", aniLog)
 			log.Printf("*** GAME ENDED ***\nWINNER: DRAW\n\n")
 			result.Winner = -1
 			return result
@@ -50,7 +49,6 @@ func Play(d1, d2 models.Deck) GameResult {
 		for idx, hp := range state.playerHPs {
 			if hp <= 0 {
 				// The other player won
-				log.Printf("### Animation Log: %+v\n", aniLog)
 				log.Printf("*** GAME ENDED ***\nWINNER: PLAYER %d\n\n", (idx+1)%2+1)
 				result.Winner = (idx + 1) % 2
 				return result
@@ -63,38 +61,48 @@ func playTurn() {
 	p := state.turn   // Player turn
 	ep := (p + 1) % 2 // Enemy turn
 	aniLog.StartTurn(p)
+	log.Printf("TURN: Player %d\n", p+1)
 
 	// Draw a card
 	if c, e := state.decks[p].DrawCard(); e == nil {
 		aniLog.DrawCard(p)
+		log.Printf("Player %d draws a card\n", p+1)
 		state.hands[p].AddCard(&c)
 	}
 
 	// Reduce clocks
+	logGamestate(state)
+	removed := 0 // Number of cards removed from hand while iterating
 	for idx, c := range state.hands[p].Cards {
 		aniLog.CardClocksDown(p, idx)
 		if c.ClockDown() {
-			// TODO: May need to adjust idx
 			aniLog.PlayCard(p, idx)
+			log.Printf("Player %d plays card %d from their hand\n", p+1, idx+1)
 			state.fields[p].AddCard(c)
 			state.hands[p].RemoveCard(c)
+			removed++
 		}
 	}
 
 	// Declare attacks
+	logGamestate(state)
 	for idx, c := range state.fields[p].Cards {
 		aniLog.CardAttacks(p, idx)
+		log.Printf("Player %d attacks with %+v\n", p+1, c)
 		if len(state.fields[ep].Cards) > idx {
 			// There is an enemy card blocking this attack
-			aniLog.CardAttacked(ep, idx, c.Pow)
 			ec := state.fields[ep].Cards[idx]
+			aniLog.CardAttacked(ep, idx, c.Pow)
+			log.Printf("Player %d's %+v is attacked for %d damage\n", ep+1, ec, c.Pow)
 			killed := ec.Damage(c.Pow)
 			if killed {
 				aniLog.CardDies(p, idx)
+				log.Printf("Player %d's %+v dies\n", ep+1, ec)
 				state.fields[ep].RemoveCard(ec)
 			}
 		} else {
 			aniLog.PlayerAttacked(ep, c.Pow)
+			log.Printf("Player %d is attacked for %d damage\n", ep+1, c.Pow)
 			state.playerHPs[ep] -= c.Pow
 		}
 	}
@@ -105,7 +113,7 @@ func playTurn() {
 
 func startGame(d1, d2 models.Deck) {
 	// Start logging
-	newPath := filepath.Join("..", "logs")
+	newPath := filepath.Join(".", "logs")
 	os.MkdirAll(newPath, os.ModePerm)
 	logName := time.Now().Format("2006-01-02_15-04-05") + ".log"
 	path := filepath.Join(newPath, logName)
