@@ -141,7 +141,7 @@ func drawCard(state *gameState) {
 	if c, e := state.decks[p].DrawCard(); e == nil {
 		aniLog.DrawCard(p)
 		log.Printf("Player %d draws a card\n", p+1)
-		state.hands[p].AddCard(&c)
+		state.hands[p].AddCard(c)
 	}
 }
 
