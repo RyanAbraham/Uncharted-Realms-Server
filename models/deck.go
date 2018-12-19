@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"math/rand"
 )
 
@@ -67,4 +68,12 @@ func (d *Deck) createDeck(db *sql.DB) error {
 
 func getDecks(db *sql.DB, start, count int) ([]Deck, error) {
 	return nil, errors.New("Not implemented")
+}
+
+func (d Deck) String() string {
+	str := fmt.Sprintf("Deck{Cards: ")
+	for _, c := range d.Cards {
+		str += fmt.Sprintf("\n  %+v", c)
+	}
+	return str + "\n}"
 }

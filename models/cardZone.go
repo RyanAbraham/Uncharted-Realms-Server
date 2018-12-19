@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -31,4 +32,12 @@ func (cz *CardZone) getIndexOfCard(c *Card) int {
 		}
 	}
 	return -1
+}
+
+func (cz CardZone) String() string {
+	str := fmt.Sprintf("CardZone{Cards: ")
+	for _, c := range cz.Cards {
+		str += fmt.Sprintf("\n  %+v", c)
+	}
+	return str + "\n}"
 }
