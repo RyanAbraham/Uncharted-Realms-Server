@@ -16,6 +16,7 @@ type gameState struct {
 	fields    [2]models.CardZone
 	playerHPs [2]int
 	turn      int
+	seed      int64
 }
 
 // GameResult contains all information from a game that was simulated
@@ -25,8 +26,6 @@ type GameResult struct {
 	Seed         int64                `json:"seed"`
 }
 
-var state gameState
-var seed int64
 var aniLog models.AnimationLog
 var result GameResult
 var f *os.File
@@ -34,11 +33,12 @@ var f *os.File
 // Play simulates a game with 2 decks.
 // Returns 0 for player 1 win, 1 for player 2, and -1 for a draw.
 func Play(d1, d2 models.Deck) GameResult {
-	startGame(d1, d2)
+	var state gameState
+	startGame(&state, d1, d2)
 	defer f.Close()
 	log.Println("*** START GAME ***")
 	for {
-		playTurn()
+		playTurn(&state)
 		// Check if a player won through damage
 		if state.playerHPs[0] <= 0 && state.playerHPs[1] <= 0 {
 			// Tie game
@@ -57,27 +57,24 @@ func Play(d1, d2 models.Deck) GameResult {
 	}
 }
 
-func playTurn() {
+func playTurn(state *gameState) {
 	p := state.turn   // Player turn
 	ep := (p + 1) % 2 // Enemy turn
 	aniLog.StartTurn(p)
 	log.Printf("TURN: Player %d\n", p+1)
 
-	// Draw a card
-	if c, e := state.decks[p].DrawCard(); e == nil {
-		aniLog.DrawCard(p)
-		log.Printf("Player %d draws a card\n", p+1)
-		state.hands[p].AddCard(&c)
-	}
+	drawCard(state, p)
 
 	// Reduce clocks
 	logGamestate(state)
 	removed := 0 // Number of cards removed from hand while iterating
-	for idx, c := range state.hands[p].Cards {
-		aniLog.CardClocksDown(p, idx)
+	for idx := range state.hands[p].Cards {
+		j := idx - removed
+		c := state.hands[p].Cards[j]
+		aniLog.CardClocksDown(p, j)
 		if c.ClockDown() {
-			aniLog.PlayCard(p, idx)
-			log.Printf("Player %d plays card %d from their hand\n", p+1, idx+1)
+			aniLog.PlayCard(p, j)
+			log.Printf("Player %d plays card %d from their hand\n", p+1, j+1)
 			state.fields[p].AddCard(c)
 			state.hands[p].RemoveCard(c)
 			removed++
@@ -111,7 +108,7 @@ func playTurn() {
 	state.turn = ep
 }
 
-func startGame(d1, d2 models.Deck) {
+func startGame(state *gameState, d1, d2 models.Deck) {
 	// Start logging
 	newPath := filepath.Join(".", "logs")
 	os.MkdirAll(newPath, os.ModePerm)
@@ -124,15 +121,15 @@ func startGame(d1, d2 models.Deck) {
 	log.SetOutput(f)
 
 	// Set up game variables
-	seed = time.Now().UTC().UnixNano()
-	result.Seed = seed
+	state.seed = time.Now().UTC().UnixNano()
+	result.Seed = state.seed
 	result.AnimationLog = &aniLog
 
 	// Populate and shuffle decks
 	state.decks = [...]models.Deck{d1, d2}
 	for i, deck := range state.decks {
 		aniLog.ShuffleDeck(i)
-		deck.Shuffle(seed)
+		deck.Shuffle(state.seed)
 	}
 	// Initialize hands and fields
 	state.hands = [2]models.CardZone{
@@ -151,4 +148,12 @@ func startGame(d1, d2 models.Deck) {
 	// Set starting player
 	// TODO: Randomize this
 	state.turn = 0
+}
+
+func drawCard(state *gameState, p int) {
+	if c, e := state.decks[p].DrawCard(); e == nil {
+		aniLog.DrawCard(p)
+		log.Printf("Player %d draws a card\n", p+1)
+		state.hands[p].AddCard(&c)
+	}
 }
