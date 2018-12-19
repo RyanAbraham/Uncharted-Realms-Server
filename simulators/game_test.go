@@ -62,11 +62,12 @@ func TestDrawCard(t *testing.T) {
 			models.Deck{Cards: []models.Card{one}},
 			models.Deck{},
 		},
+		turn: 0,
 	}
 	expectedState := state
 	expectedState.decks[0].Cards = []models.Card{}
 	expectedState.hands[0].Cards = []*models.Card{&one}
-	drawCard(&state, 0)
+	drawCard(&state)
 	fmt.Println(state.hands[0])
 	if !reflect.DeepEqual(state, expectedState) {
 		t.Errorf("Game state incorrect, got: %+v, expected %+v.", state, expectedState)

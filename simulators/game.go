@@ -63,23 +63,9 @@ func playTurn(state *gameState) {
 	aniLog.StartTurn(p)
 	log.Printf("TURN: Player %d\n", p+1)
 
-	drawCard(state, p)
+	drawCard(state)
 
-	// Reduce clocks
-	logGamestate(state)
-	removed := 0 // Number of cards removed from hand while iterating
-	for idx := range state.hands[p].Cards {
-		j := idx - removed
-		c := state.hands[p].Cards[j]
-		aniLog.CardClocksDown(p, j)
-		if c.ClockDown() {
-			aniLog.PlayCard(p, j)
-			log.Printf("Player %d plays card %d from their hand\n", p+1, j+1)
-			state.fields[p].AddCard(c)
-			state.hands[p].RemoveCard(c)
-			removed++
-		}
-	}
+	reduceClocksAndPlayCards(state)
 
 	// Declare attacks
 	logGamestate(state)
@@ -150,10 +136,29 @@ func startGame(state *gameState, d1, d2 models.Deck) {
 	state.turn = 0
 }
 
-func drawCard(state *gameState, p int) {
+func drawCard(state *gameState) {
+	p := state.turn
 	if c, e := state.decks[p].DrawCard(); e == nil {
 		aniLog.DrawCard(p)
 		log.Printf("Player %d draws a card\n", p+1)
 		state.hands[p].AddCard(&c)
+	}
+}
+
+func reduceClocksAndPlayCards(state *gameState) {
+	p := state.turn
+	logGamestate(state)
+	removed := 0 // Number of cards removed from hand while iterating
+	for idx := range state.hands[p].Cards {
+		j := idx - removed
+		c := state.hands[p].Cards[j]
+		aniLog.CardClocksDown(p, j)
+		if c.ClockDown() {
+			aniLog.PlayCard(p, j)
+			log.Printf("Player %d plays card %d from their hand\n", p+1, j+1)
+			state.fields[p].AddCard(c)
+			state.hands[p].RemoveCard(c)
+			removed++
+		}
 	}
 }
