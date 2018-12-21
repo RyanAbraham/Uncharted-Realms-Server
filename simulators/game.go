@@ -67,28 +67,7 @@ func playTurn(state *gameState) {
 
 	reduceClocksAndPlayCards(state)
 
-	// Declare attacks
-	logGamestate(state)
-	for idx, c := range state.fields[p].Cards {
-		aniLog.CardAttacks(p, idx)
-		log.Printf("Player %d attacks with %+v\n", p+1, c)
-		if len(state.fields[ep].Cards) > idx {
-			// There is an enemy card blocking this attack
-			ec := state.fields[ep].Cards[idx]
-			aniLog.CardAttacked(ep, idx, c.Pow)
-			log.Printf("Player %d's %+v is attacked for %d damage\n", ep+1, ec, c.Pow)
-			killed := ec.Damage(c.Pow)
-			if killed {
-				aniLog.CardDies(p, idx)
-				log.Printf("Player %d's %+v dies\n", ep+1, ec)
-				state.fields[ep].RemoveCard(ec)
-			}
-		} else {
-			aniLog.PlayerAttacked(ep, c.Pow)
-			log.Printf("Player %d is attacked for %d damage\n", ep+1, c.Pow)
-			state.playerHPs[ep] -= c.Pow
-		}
-	}
+	declareAttacks(state)
 
 	// End turn
 	state.turn = ep
@@ -159,6 +138,32 @@ func reduceClocksAndPlayCards(state *gameState) {
 			state.fields[p].AddCard(c)
 			state.hands[p].RemoveCard(c)
 			removed++
+		}
+	}
+}
+
+func declareAttacks(state *gameState) {
+	p := state.turn
+	ep := (p + 1) % 2
+	logGamestate(state)
+	for idx, c := range state.fields[p].Cards {
+		aniLog.CardAttacks(p, idx)
+		log.Printf("Player %d attacks with %+v\n", p+1, c)
+		if len(state.fields[ep].Cards) > idx {
+			// There is an enemy card blocking this attack
+			ec := state.fields[ep].Cards[idx]
+			aniLog.CardAttacked(ep, idx, c.Pow)
+			log.Printf("Player %d's %+v is attacked for %d damage\n", ep+1, ec, c.Pow)
+			killed := ec.Damage(c.Pow)
+			if killed {
+				aniLog.CardDies(p, idx)
+				log.Printf("Player %d's %+v dies\n", ep+1, ec)
+				state.fields[ep].RemoveCard(ec)
+			}
+		} else {
+			aniLog.PlayerAttacked(ep, c.Pow)
+			log.Printf("Player %d is attacked for %d damage\n", ep+1, c.Pow)
+			state.playerHPs[ep] -= c.Pow
 		}
 	}
 }
