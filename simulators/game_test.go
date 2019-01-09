@@ -109,3 +109,39 @@ func TestReduceClocksAndPlayCards(t *testing.T) {
 		t.Errorf("Game state incorrect, got: %+v, expected %+v.", state, expectedState)
 	}
 }
+
+func TestDeclareAttacks(t *testing.T) {
+	state := gameState{
+		fields: [2]models.CardZone{
+			models.CardZone{Cards: []*models.Card{
+				helpers.FakeCard(0, 1, 1, nil),
+				helpers.FakeCard(0, 2, 2, nil),
+				helpers.FakeCard(0, 2, 2, nil),
+			}},
+			models.CardZone{Cards: []*models.Card{
+				helpers.FakeCard(0, 2, 2, nil),
+				helpers.FakeCard(0, 2, 2, nil),
+			}},
+		},
+		playerHPs: [2]int{10, 10},
+		turn:      0,
+	}
+	expectedState := state
+	expectedState.fields = [2]models.CardZone{
+		models.CardZone{Cards: []*models.Card{
+			helpers.FakeCard(0, 1, 1, nil),
+			helpers.FakeCard(0, 2, 2, nil),
+			helpers.FakeCard(0, 2, 2, nil),
+		}},
+		models.CardZone{Cards: []*models.Card{
+			helpers.FakeCard(0, 2, 1, nil),
+		}},
+	}
+	expectedState.playerHPs = [2]int{10, 8}
+
+	declareAttacks(&state)
+
+	if !reflect.DeepEqual(state, expectedState) {
+		t.Errorf("Game state incorrect, got: %+v, expected %+v.", state, expectedState)
+	}
+}
