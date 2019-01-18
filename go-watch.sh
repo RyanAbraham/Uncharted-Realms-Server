@@ -6,7 +6,7 @@ NC='\033[0m'
 while true; do
   go build
   go test ./... -timeout=10s
-  ./urserver
+  ./urserver &
   #$@ &
   PID=$!
   inotifywait -r -e modify --exclude '\.log' .
