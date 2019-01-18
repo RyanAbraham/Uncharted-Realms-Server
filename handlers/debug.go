@@ -20,6 +20,10 @@ func (a *App) DebugHandler(w http.ResponseWriter, r *http.Request) {
 	var oneDeck = helpers.DeckOf(helpers.FakeCard(1, 1, 1, nil), 10)
 	var twoDeck = helpers.DeckOf(helpers.FakeCard(2, 2, 2, nil), 10)
 	result := simulators.Play(twoDeck, oneDeck)
+
+	// Reset decks and send response
+	oneDeck = helpers.DeckOf(helpers.FakeCard(1, 1, 1, nil), 10)
+	twoDeck = helpers.DeckOf(helpers.FakeCard(2, 2, 2, nil), 10)
 	response := debugResponse{
 		Winner:       result.Winner,
 		AnimationLog: result.AnimationLog,
