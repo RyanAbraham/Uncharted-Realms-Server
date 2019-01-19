@@ -19,8 +19,8 @@ func FakeCard(clk, pow, hp int, effs []string) *models.Card {
 func DeckOf(c *models.Card, x int) models.Deck {
 	fakeDeck := models.Deck{}
 	for i := 0; i < x; i++ {
-		newCard := c // Copy the object
-		fakeDeck.AddCards(newCard)
+		newCard := *c // Copy the object
+		fakeDeck.AddCards(&newCard)
 	}
 	return fakeDeck
 }
