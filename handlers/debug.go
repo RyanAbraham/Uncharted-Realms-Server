@@ -28,7 +28,7 @@ func (a *App) DebugHandler(w http.ResponseWriter, r *http.Request) {
 		Winner:       result.Winner,
 		AnimationLog: result.AnimationLog,
 		Seed:         result.Seed,
-		Decks:        []models.Deck{oneDeck, twoDeck},
+		Decks:        []models.Deck{twoDeck, oneDeck},
 	}
 	RespondWithJSON(w, 200, response)
 }
