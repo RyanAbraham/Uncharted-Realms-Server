@@ -156,7 +156,7 @@ func declareAttacks(state *gameState) {
 			log.Printf("Player %d's %+v is attacked for %d damage\n", ep+1, ec, c.Pow)
 			killed := ec.Damage(c.Pow)
 			if killed {
-				aniLog.CardDies(p, idx)
+				aniLog.CardDies(ep, idx)
 				log.Printf("Player %d's %+v dies\n", ep+1, ec)
 				state.fields[ep].RemoveCard(ec)
 			}

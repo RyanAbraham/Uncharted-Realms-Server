@@ -109,7 +109,7 @@ func (a *AnimationLog) CardAttacked(p, idx, val int) {
 // CardDies adds an animation of that type to the animation log
 func (a *AnimationLog) CardDies(p, idx int) {
 	a.addAnimation(animation{
-		Type:   cardAttacked,
+		Type:   cardDies,
 		Player: p,
 		CIdx:   idx,
 	})
